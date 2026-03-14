@@ -2,6 +2,7 @@
 #define _SWAYLOCK_H
 #include <stdbool.h>
 #include <stdint.h>
+#include <time.h>
 #include <wayland-client.h>
 #include "background-image.h"
 #include "cairo.h"
@@ -42,6 +43,7 @@ struct swaylock_colors {
 	uint32_t layout_background;
 	uint32_t layout_border;
 	uint32_t layout_text;
+	uint32_t clock_color;
 	struct swaylock_colorset inside;
 	struct swaylock_colorset line;
 	struct swaylock_colorset ring;
@@ -100,6 +102,7 @@ struct swaylock_state {
 	bool run_display, locked;
 	struct ext_session_lock_manager_v1 *ext_session_lock_manager_v1;
 	struct ext_session_lock_v1 *ext_session_lock_v1;
+	time_t *time;
 };
 
 struct swaylock_surface {

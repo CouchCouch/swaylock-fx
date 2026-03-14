@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include <wayland-client.h>
 #include "cairo.h"
 #include "background-image.h"
@@ -51,6 +52,8 @@ static bool render_frame(struct swaylock_surface *surface);
 
 void render(struct swaylock_surface *surface) {
 	struct swaylock_state *state = surface->state;
+	// update the time_string to 8pm
+	time(state->time);
 
 	int buffer_width = surface->width * surface->scale;
 	int buffer_height = surface->height * surface->scale;
@@ -194,6 +197,22 @@ static bool render_frame(struct swaylock_surface *surface) {
 	int buffer_width = buffer_diameter;
 	int buffer_height = buffer_diameter;
 
+	cairo_text_extents_t clock_extents;
+	cairo_select_font_face(state->test_cairo, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size(state->test_cairo, 48.0 * surface->scale);
+	cairo_move_to(state->test_cairo, 50, 50);
+	struct tm *tm_info = localtime(state->time);
+	char time_str[9];
+	strftime(time_str, sizeof(time_str), "%H:%M:%S", tm_info);
+	cairo_show_text(state->test_cairo, time_str);
+	cairo_text_extents(state->test_cairo, ctime(state->time), &clock_extents);
+	if (buffer_width < clock_extents.width) {
+		buffer_width = clock_extents.width;
+	}
+	if (buffer_height < clock_extents.height) {
+		buffer_height = clock_extents.height + 50;
+	}
+
 	if (text || layout_text) {
 		cairo_set_antialias(state->test_cairo, CAIRO_ANTIALIAS_BEST);
 		configure_font_drawing(state->test_cairo, state, surface->subpixel, arc_radius);
@@ -211,9 +230,9 @@ static bool render_frame(struct swaylock_surface *surface) {
 			double box_padding = 4.0 * surface->scale;
 			cairo_text_extents(state->test_cairo, layout_text, &extents);
 			cairo_font_extents(state->test_cairo, &fe);
-			buffer_height += fe.height + 2 * box_padding;
-			if (buffer_width < extents.width + 2 * box_padding) {
-				buffer_width = extents.width + 2 * box_padding;
+			buffer_height += fe.height + 8 * box_padding;
+			if (buffer_width < extents.width + 8 * box_padding) {
+				buffer_width = extents.width + 8 * box_padding;
 			}
 		}
 	}
@@ -387,6 +406,15 @@ static bool render_frame(struct swaylock_surface *surface) {
 			cairo_show_text(cairo, layout_text);
 			cairo_new_sub_path(cairo);
 		}
+		// Test Clock stuff
+		cairo_select_font_face(cairo, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+		cairo_set_font_size(cairo, 48.0 * surface->scale);
+		cairo_set_source_u32(cairo, state->args.colors.clock_color);
+		cairo_move_to(cairo, 50, 50);
+		struct tm *tm_info = localtime(state->time);
+		char time_str[9];
+		strftime(time_str, sizeof(time_str), "%H:%M:%S", tm_info);
+		cairo_show_text(cairo, time_str);
 	}
 
 	// Send Wayland requests

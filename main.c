@@ -483,6 +483,7 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 		LO_TEXT_CAPS_LOCK_COLOR,
 		LO_TEXT_VER_COLOR,
 		LO_TEXT_WRONG_COLOR,
+		LO_CLOCK_COLOR,
 	};
 
 	static struct option long_options[] = {
@@ -540,6 +541,7 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 		{"text-caps-lock-color", required_argument, NULL, LO_TEXT_CAPS_LOCK_COLOR},
 		{"text-ver-color", required_argument, NULL, LO_TEXT_VER_COLOR},
 		{"text-wrong-color", required_argument, NULL, LO_TEXT_WRONG_COLOR},
+		{"clock-color", required_argument, NULL, LO_CLOCK_COLOR},
 		{0, 0, 0, 0}
 	};
 
@@ -943,6 +945,11 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 				state->args.colors.text.wrong = parse_color(optarg);
 			}
 			break;
+		case LO_CLOCK_COLOR:
+			if (state) {
+				state->args.colors.clock_color = parse_color(optarg);
+			}
+			break;
 		default:
 			fprintf(stderr, "%s", usage);
 			return 1;
@@ -1114,6 +1121,8 @@ int main(int argc, char **argv) {
 		.indicator_idle_visible = false,
 		.ready_fd = -1,
 	};
+	// make sure the mmory is alloced for the time string
+	state.time = calloc(sizeof(time_t), sizeof(time_t));
 	wl_list_init(&state.images);
 	set_default_colors(&state.args.colors);
 
