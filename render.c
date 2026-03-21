@@ -197,24 +197,6 @@ static bool render_frame(struct swaylock_surface *surface) {
 	int buffer_width = buffer_diameter;
 	int buffer_height = buffer_diameter;
 
-	if (state->args.show_clock) {
-		cairo_text_extents_t clock_extents;
-		cairo_select_font_face(state->test_cairo, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-		cairo_set_font_size(state->test_cairo, 48.0 * surface->scale);
-		cairo_move_to(state->test_cairo, 50, 50);
-		struct tm *tm_info = localtime(&state->time);
-		char time_str[9];
-		strftime(time_str, sizeof(time_str), "%H:%M:%S", tm_info);
-		cairo_show_text(state->test_cairo, time_str);
-		cairo_text_extents(state->test_cairo, time_str, &clock_extents);
-		if (buffer_width < clock_extents.width) {
-			buffer_width = clock_extents.width;
-		}
-		if (buffer_height < clock_extents.height) {
-			buffer_height = clock_extents.height + 50;
-		}
-	}
-
 	if (text || layout_text) {
 		cairo_set_antialias(state->test_cairo, CAIRO_ANTIALIAS_BEST);
 		configure_font_drawing(state->test_cairo, state, surface->subpixel, arc_radius);
@@ -238,6 +220,27 @@ static bool render_frame(struct swaylock_surface *surface) {
 			}
 		}
 	}
+
+	if (state->args.show_clock) {
+		cairo_text_extents_t extents;
+		cairo_font_extents_t fe;
+		double box_padding = 4.0 * surface->scale;
+		cairo_select_font_face(state->test_cairo, state->args.font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+		cairo_set_font_size(state->test_cairo, state->args.clock_font_size * surface->scale);
+		struct tm *tm_info = localtime(&state->time);
+		char time_str[9];
+		strftime(time_str, sizeof(time_str), "%I:%M %p", tm_info);
+		cairo_show_text(state->test_cairo, time_str);
+		cairo_text_extents(state->test_cairo, time_str, &extents);
+		cairo_font_extents(state->test_cairo, &fe);
+		if (buffer_width < extents.width + 8 * box_padding) {
+			buffer_width = extents.width + 8 * box_padding;
+		}
+		if (buffer_height < extents.height +  8 * box_padding) {
+			buffer_height = extents.height + 50;
+		}
+	}
+
 	// Ensure buffer size is multiple of buffer scale - required by protocol
 	buffer_height += surface->scale - (buffer_height % surface->scale);
 	buffer_width += surface->scale - (buffer_width % surface->scale);
@@ -281,6 +284,8 @@ static bool render_frame(struct swaylock_surface *surface) {
 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
 	cairo_paint(cairo);
 	cairo_restore(cairo);
+
+	// TO-DO: Remove this debug red background
 	cairo_set_source_rgba(cairo, 1.0, 0.0, 0.0, 0.25); // Red
 	cairo_rectangle(cairo, 0, 0, buffer_width, buffer_height);
 	cairo_fill(cairo);
@@ -413,13 +418,21 @@ static bool render_frame(struct swaylock_surface *surface) {
 		}
 	}
 	if (state->args.show_clock) {
-		cairo_select_font_face(cairo, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-		cairo_set_font_size(cairo, 48.0 * surface->scale);
-		cairo_set_source_u32(cairo, state->args.colors.clock_color);
-		cairo_move_to(cairo, 50, 50);
 		struct tm *tm_info = localtime(&state->time);
 		char time_str[9];
-		strftime(time_str, sizeof(time_str), "%H:%M:%S", tm_info);
+		strftime(time_str, sizeof(time_str), "%I:%M %p", tm_info);
+
+		cairo_text_extents_t extents;
+		cairo_font_extents_t fe;
+		double x;
+		cairo_select_font_face(cairo, state->args.font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+		cairo_set_font_size(cairo, state->args.clock_font_size * surface->scale);
+		cairo_text_extents(cairo, time_str, &extents);
+		cairo_font_extents(cairo, &fe);
+		x = (buffer_width / 2) - (extents.width / 2) - extents.x_bearing;
+
+		cairo_set_source_u32(cairo, state->args.colors.clock_color);
+		cairo_move_to(cairo, x, extents.height);
 		cairo_show_text(cairo, time_str);
 	}
 
