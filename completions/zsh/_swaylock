@@ -56,4 +56,10 @@ _arguments -s \
 	'(--text-ver-color)'--text-ver-color'[Sets the color of the text when verifying]:color:' \
 	'(--text-wrong-color)'--text-wrong-color'[Sets the color of the text when invalid]:color:' \
 	'(--tiling -t)'{--tiling,-t}'[Same as --scaling=tile]' \
-	'(--version -v)'{--version,-v}'[Show the version number and quit]'
+	'(--version -v)'{--version,-v}'[Show the version number and quit]' \
+    '(--show-clock -w)'{--show-clock,-w}'[Show a clock]' \
+    '(--hide-clock -W)'{--hide-clock,-W}'[Hide the clock]' \
+    '(--clock-color)'--clock-color'[Sets the color of the clock text]:color:' \
+    '(--clock-font-size)'--clock-font-size'[Sets a fixed font size for the clock text]' \
+    '(--clock-x-position)'--clock-x-position'[Sets the horizontal position of the clock]' \
+    '(--clock-y-position)'--clock-y-position'[Sets the vertical position of the clock]' \

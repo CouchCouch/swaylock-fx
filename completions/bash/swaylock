@@ -24,6 +24,8 @@ _swaylock()
     -t
     -u
     -v
+    -w
+    -W
   )
 
   long=(
@@ -80,6 +82,12 @@ _swaylock()
     --text-wrong-color
     --tiling
     --version
+    --hide-clock
+    --show-clock
+    --clock-color
+    --clock-font-size
+    --clock-x-position
+    --clock-y-position
   )
 
   scaling=(

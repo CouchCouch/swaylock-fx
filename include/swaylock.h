@@ -71,6 +71,12 @@ struct swaylock_args {
 	bool daemonize;
 	int ready_fd;
 	bool indicator_idle_visible;
+	bool show_clock;
+	uint32_t clock_font_size;
+	uint32_t clock_x_position;
+	uint32_t clock_y_position;
+	bool override_clock_x_position;
+	bool override_clock_y_position;
 };
 
 struct swaylock_password {
@@ -102,7 +108,7 @@ struct swaylock_state {
 	bool run_display, locked;
 	struct ext_session_lock_manager_v1 *ext_session_lock_manager_v1;
 	struct ext_session_lock_v1 *ext_session_lock_v1;
-	time_t *time;
+	time_t time;
 };
 
 struct swaylock_surface {

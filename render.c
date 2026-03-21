@@ -53,7 +53,7 @@ static bool render_frame(struct swaylock_surface *surface);
 void render(struct swaylock_surface *surface) {
 	struct swaylock_state *state = surface->state;
 	// update the time_string to 8pm
-	time(state->time);
+	time(&state->time);
 
 	int buffer_width = surface->width * surface->scale;
 	int buffer_height = surface->height * surface->scale;
@@ -197,20 +197,22 @@ static bool render_frame(struct swaylock_surface *surface) {
 	int buffer_width = buffer_diameter;
 	int buffer_height = buffer_diameter;
 
-	cairo_text_extents_t clock_extents;
-	cairo_select_font_face(state->test_cairo, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size(state->test_cairo, 48.0 * surface->scale);
-	cairo_move_to(state->test_cairo, 50, 50);
-	struct tm *tm_info = localtime(state->time);
-	char time_str[9];
-	strftime(time_str, sizeof(time_str), "%H:%M:%S", tm_info);
-	cairo_show_text(state->test_cairo, time_str);
-	cairo_text_extents(state->test_cairo, ctime(state->time), &clock_extents);
-	if (buffer_width < clock_extents.width) {
-		buffer_width = clock_extents.width;
-	}
-	if (buffer_height < clock_extents.height) {
-		buffer_height = clock_extents.height + 50;
+	if (state->args.show_clock) {
+		cairo_text_extents_t clock_extents;
+		cairo_select_font_face(state->test_cairo, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+		cairo_set_font_size(state->test_cairo, 48.0 * surface->scale);
+		cairo_move_to(state->test_cairo, 50, 50);
+		struct tm *tm_info = localtime(&state->time);
+		char time_str[9];
+		strftime(time_str, sizeof(time_str), "%H:%M:%S", tm_info);
+		cairo_show_text(state->test_cairo, time_str);
+		cairo_text_extents(state->test_cairo, time_str, &clock_extents);
+		if (buffer_width < clock_extents.width) {
+			buffer_width = clock_extents.width;
+		}
+		if (buffer_height < clock_extents.height) {
+			buffer_height = clock_extents.height + 50;
+		}
 	}
 
 	if (text || layout_text) {
@@ -279,6 +281,9 @@ static bool render_frame(struct swaylock_surface *surface) {
 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
 	cairo_paint(cairo);
 	cairo_restore(cairo);
+	cairo_set_source_rgba(cairo, 1.0, 0.0, 0.0, 0.25); // Red
+	cairo_rectangle(cairo, 0, 0, buffer_width, buffer_height);
+	cairo_fill(cairo);
 
 	if (draw_indicator) {
 		// Fill inner circle
@@ -406,12 +411,13 @@ static bool render_frame(struct swaylock_surface *surface) {
 			cairo_show_text(cairo, layout_text);
 			cairo_new_sub_path(cairo);
 		}
-		// Test Clock stuff
+	}
+	if (state->args.show_clock) {
 		cairo_select_font_face(cairo, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
 		cairo_set_font_size(cairo, 48.0 * surface->scale);
 		cairo_set_source_u32(cairo, state->args.colors.clock_color);
 		cairo_move_to(cairo, 50, 50);
-		struct tm *tm_info = localtime(state->time);
+		struct tm *tm_info = localtime(&state->time);
 		char time_str[9];
 		strftime(time_str, sizeof(time_str), "%H:%M:%S", tm_info);
 		cairo_show_text(cairo, time_str);

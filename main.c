@@ -437,6 +437,7 @@ static void set_default_colors(struct swaylock_colors *colors) {
 		.verifying = 0x000000FF,
 		.wrong = 0x000000FF,
 	};
+	colors->clock_color = 0xFFFFFFFF;
 }
 
 enum line_mode {
@@ -484,6 +485,9 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 		LO_TEXT_VER_COLOR,
 		LO_TEXT_WRONG_COLOR,
 		LO_CLOCK_COLOR,
+		LO_CLOCK_FONT_SIZE,
+		LO_CLOCK_X_POSITION,
+		LO_CLOCK_Y_POSITION,
 	};
 
 	static struct option long_options[] = {
@@ -504,6 +508,8 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 		{"no-unlock-indicator", no_argument, NULL, 'u'},
 		{"show-keyboard-layout", no_argument, NULL, 'k'},
 		{"hide-keyboard-layout", no_argument, NULL, 'K'},
+		{"show-clock", no_argument, NULL, 'w'},
+		{"hide_clock", no_argument, NULL, 'W'},
 		{"show-failed-attempts", no_argument, NULL, 'F'},
 		{"version", no_argument, NULL, 'v'},
 		{"bs-hl-color", required_argument, NULL, LO_BS_HL_COLOR},
@@ -542,6 +548,9 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 		{"text-ver-color", required_argument, NULL, LO_TEXT_VER_COLOR},
 		{"text-wrong-color", required_argument, NULL, LO_TEXT_WRONG_COLOR},
 		{"clock-color", required_argument, NULL, LO_CLOCK_COLOR},
+		{"clock-font-size", required_argument, NULL, LO_CLOCK_FONT_SIZE},
+		{"clock-x-position", required_argument, NULL, LO_CLOCK_X_POSITION},
+		{"clock-y-position", required_argument, NULL, LO_CLOCK_Y_POSITION},
 		{0, 0, 0, 0}
 	};
 
@@ -664,6 +673,18 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 			"Sets the color of the text when verifying.\n"
 		"  --text-wrong-color <color>       "
 			"Sets the color of the text when invalid.\n"
+		"  --show-clock 				    "
+			"Show a clock.\n"
+		"  --hide-clock                     "
+			"Hide the clock.\n"
+		"  --clock-color <color>            "
+			"Sets the color of the clock text.\n"
+		"  --clock-font-size <size>         "
+			"Sets a fixed font size for the clock text.\n"
+		"  --clock-x-position <x>           "
+			"Sets the horizontal position of the clock.\n"
+		"  --clock-y-position <y>           "
+			"Sets the vertical position of the clock.\n"
 		"\n"
 		"All <color> options are of the form <rrggbb[aa]>.\n";
 
@@ -766,6 +787,16 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 		case 'v':
 			fprintf(stdout, "swaylock version " SWAYLOCK_VERSION "\n");
 			exit(EXIT_SUCCESS);
+			break;
+		case 'W':
+			if (state) {
+				state->args.show_clock = false;
+			}
+			break;
+		case 'w':
+			if (state) {
+				state->args.show_clock = true;
+			}
 			break;
 		case LO_BS_HL_COLOR:
 			if (state) {
@@ -950,6 +981,23 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
 				state->args.colors.clock_color = parse_color(optarg);
 			}
 			break;
+		case LO_CLOCK_FONT_SIZE:
+			if (state) {
+				state->args.clock_font_size = atoi(optarg);
+			}
+			break;
+		case LO_CLOCK_X_POSITION:
+			if (state) {
+				state->args.override_clock_x_position = true;
+				state->args.clock_x_position = atoi(optarg);
+			}
+			break;
+		case LO_CLOCK_Y_POSITION:
+			if (state) {
+				state->args.override_clock_y_position = true;
+				state->args.clock_y_position = atoi(optarg);
+			}
+			break;
 		default:
 			fprintf(stderr, "%s", usage);
 			return 1;
@@ -1120,9 +1168,13 @@ int main(int argc, char **argv) {
 		.show_failed_attempts = false,
 		.indicator_idle_visible = false,
 		.ready_fd = -1,
+		.show_clock = false,
+		.clock_font_size = 0,
+		.clock_x_position = 0,
+		.clock_y_position = 0,
+		.override_clock_x_position = false,
+		.override_clock_y_position = false,
 	};
-	// make sure the mmory is alloced for the time string
-	state.time = calloc(sizeof(time_t), sizeof(time_t));
 	wl_list_init(&state.images);
 	set_default_colors(&state.args.colors);
 
@@ -1132,6 +1184,7 @@ int main(int argc, char **argv) {
 		free(config_path);
 		return result;
 	}
+
 	if (!config_path) {
 		config_path = get_config_path();
 	}
