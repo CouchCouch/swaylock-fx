@@ -188,11 +188,6 @@ static bool render_clock(struct swaylock_surface *surface) {
 	cairo_paint(cairo);
 	cairo_restore(cairo);
 
-	// TO-DO: Remove this debug red background
-	cairo_set_source_rgba(cairo, 1.0, 0.0, 0.0, 0.25); // Red
-	cairo_rectangle(cairo, 0, 0, buffer_width, buffer_height);
-	cairo_fill(cairo);
-
 	cairo_text_extents_t extents;
 	cairo_font_extents_t fe;
 	cairo_select_font_face(cairo, state->args.font, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
@@ -348,11 +343,6 @@ static bool render_frame(struct swaylock_surface *surface) {
 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
 	cairo_paint(cairo);
 	cairo_restore(cairo);
-
-	// TO-DO: Remove this debug red background
-	cairo_set_source_rgba(cairo, 1.0, 0.0, 0.0, 0.25); // Red
-	cairo_rectangle(cairo, 0, 0, buffer_width, buffer_height);
-	cairo_fill(cairo);
 
 	if (draw_indicator) {
 		// Fill inner circle
