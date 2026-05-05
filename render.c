@@ -292,9 +292,9 @@ static bool render_frame(struct swaylock_surface *surface) {
 			double box_padding = 4.0 * surface->scale;
 			cairo_text_extents(state->test_cairo, layout_text, &extents);
 			cairo_font_extents(state->test_cairo, &fe);
-			buffer_height += fe.height + 8 * box_padding;
-			if (buffer_width < extents.width + 8 * box_padding) {
-				buffer_width = extents.width + 8 * box_padding;
+			buffer_height += fe.height + 2 * box_padding;
+			if (buffer_width < extents.width + 2 * box_padding) {
+				buffer_width = extents.width + 2 * box_padding;
 			}
 		}
 	}
