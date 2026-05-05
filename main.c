@@ -26,6 +26,7 @@
 #include "swaylock.h"
 #include "ext-session-lock-v1-client-protocol.h"
 #include "wayland-client-protocol.h"
+#include "wayland-util.h"
 
 static uint32_t parse_color(const char *color) {
 	if (color[0] == '#') {
@@ -141,7 +142,7 @@ static void create_surface(struct swaylock_surface *surface) {
 	assert(surface->subsurface);
 	wl_subsurface_set_sync(surface->subsurface);
 
-	if(state->args.show_clock) {
+	if (state->args.show_clock) {
 		surface->clock_child = wl_compositor_create_surface(state->compositor);
 		assert(surface->clock_child);
 		surface->clock_subsurface = wl_subcompositor_get_subsurface(state->subcompositor, surface->clock_child, surface->surface);
@@ -1151,6 +1152,13 @@ void log_init(int argc, char **argv) {
 	swaylock_log_init(LOG_ERROR);
 }
 
+static void clock_timer_callback(void *data) {
+	struct swaylock_state *state = data;
+	damage_state(state);
+
+	loop_add_timer(state->eventloop, 1000, clock_timer_callback, state);
+}
+
 int main(int argc, char **argv) {
 	log_init(argc, argv);
 	initialize_pw_backend(argc, argv);
@@ -1313,6 +1321,10 @@ int main(int argc, char **argv) {
 	}
 	if (state.args.daemonize) {
 		daemonize();
+	}
+
+	if (state.args.show_clock) {
+		loop_add_timer(state.eventloop, 1000, clock_timer_callback, &state);
 	}
 
 	loop_add_fd(state.eventloop, wl_display_get_fd(state.display), POLLIN,

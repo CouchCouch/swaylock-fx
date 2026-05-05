@@ -145,8 +145,8 @@ static bool render_clock(struct swaylock_surface *surface) {
 	cairo_font_extents_t test_fe;
 
 	struct tm *tm_info = localtime(&state->time);
-	char time_str[12];
-	strftime(time_str, sizeof(time_str), "%I:%ML%S %p", tm_info);
+	char time_str[9];
+	strftime(time_str, sizeof(time_str), "%I:%M %p", tm_info);
 
 	cairo_set_antialias(state->test_cairo, CAIRO_ANTIALIAS_BEST);
 	configure_font_drawing(state->test_cairo, state, surface->subpixel, state->args.clock_font_size);
