@@ -118,9 +118,12 @@ struct swaylock_surface {
 	uint32_t output_global_name;
 	struct wl_surface *surface; // surface for background
 	struct wl_surface *child; // indicator surface made into subsurface
+	struct wl_surface *clock_child; // indicator surface made into subsurface
 	struct wl_subsurface *subsurface;
+	struct wl_subsurface *clock_subsurface;
 	struct ext_session_lock_surface_v1 *ext_session_lock_surface_v1;
 	struct pool_buffer indicator_buffers[2];
+	struct pool_buffer clock_buffers[2];
 	bool created;
 	bool dirty;
 	uint32_t width, height;

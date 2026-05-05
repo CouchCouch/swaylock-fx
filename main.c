@@ -25,6 +25,7 @@
 #include "seat.h"
 #include "swaylock.h"
 #include "ext-session-lock-v1-client-protocol.h"
+#include "wayland-client-protocol.h"
 
 static uint32_t parse_color(const char *color) {
 	if (color[0] == '#') {
@@ -139,6 +140,14 @@ static void create_surface(struct swaylock_surface *surface) {
 	surface->subsurface = wl_subcompositor_get_subsurface(state->subcompositor, surface->child, surface->surface);
 	assert(surface->subsurface);
 	wl_subsurface_set_sync(surface->subsurface);
+
+	if(state->args.show_clock) {
+		surface->clock_child = wl_compositor_create_surface(state->compositor);
+		assert(surface->clock_child);
+		surface->clock_subsurface = wl_subcompositor_get_subsurface(state->subcompositor, surface->clock_child, surface->surface);
+		assert(surface->clock_subsurface);
+		wl_subsurface_set_sync(surface->clock_subsurface);
+	}
 
 	surface->ext_session_lock_surface_v1 = ext_session_lock_v1_get_lock_surface(
 		state->ext_session_lock_v1, surface->surface, surface->output);
@@ -1169,7 +1178,7 @@ int main(int argc, char **argv) {
 		.indicator_idle_visible = false,
 		.ready_fd = -1,
 		.show_clock = false,
-		.clock_font_size = 0,
+		.clock_font_size = 50,
 		.clock_x_position = 0,
 		.clock_y_position = 0,
 		.override_clock_x_position = false,
